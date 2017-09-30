@@ -1,7 +1,6 @@
-.PHONY: test clean docs
+.PHONY: test clean docs build
 
-test:
-	python setup.py build_ext --inplace
+test: build
 	pytest
 
 clean:
@@ -9,5 +8,9 @@ clean:
 	find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
 	python setup.py clean --all
 
-docs:
+docs: build
+	@touch docs/api.rst  # ensure api docs always rebuilt
 	make -C docs/ html
+
+build:
+	python setup.py build_ext --inplace
