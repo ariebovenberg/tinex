@@ -1,8 +1,10 @@
+#!python
+#cython: embedsignature=True
 cimport tinyexpr
 
 
 cpdef double _eval(expression: bytes) except? -9:
-    """evaluate an expression"""
+    """Evaluate an escii-encoded bytestring expression"""
     cdef:
         int error
         double result
@@ -13,4 +15,34 @@ cpdef double _eval(expression: bytes) except? -9:
     return result
 
 
-eval = _eval
+def eval(expression: str) -> float:
+    """Evaluate an expression
+
+    Parameters
+    ----------
+    expression : str
+        The expression string (must be ascii-encodable).
+
+    Returns
+    -------
+    result : float
+        The result of evaluation.
+
+    Raises
+    ------
+    SyntaxError
+        If the expression cannot be parsed
+
+    Examples
+    --------
+
+    >>> import tinyexpr as te
+    >>> te.eval('sqrt(3^2+4^2)')
+    5.0
+    >>> te.eval('cos(pi)')
+    -1.0
+    >>> te.eval('-5/0')
+    -inf
+
+    """
+    return _eval(expression.encode('ascii'))
