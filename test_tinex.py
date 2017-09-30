@@ -1,7 +1,7 @@
 import pytest
 import math
 
-import tinyexpr as te
+import tinex as te
 
 
 class TestEval:

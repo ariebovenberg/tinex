@@ -1,7 +1,7 @@
-tinyexpr.py
-===========
+Tinex
+=====
 
-A python wrapper for  tinyexpr_. Work in progress.
+A python wrapper for tinyexpr_.
 
 .. _tinyexpr: https://codeplea.com/tinyexpr
 
@@ -10,7 +10,6 @@ Quickstart
 
 .. code-block:: python
 
-   >>> import tinyexpr as te
-   >>> te.eval('1+1')
-   2
-               
+   >>> import tinex
+   >>> tinex.eval('1+1')
+   2.0

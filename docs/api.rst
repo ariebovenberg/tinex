@@ -1,5 +1,5 @@
 API documentation
 =================
 
-.. automodule:: tinyexpr
+.. automodule:: tinex
    :members: eval

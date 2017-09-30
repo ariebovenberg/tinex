@@ -3,10 +3,10 @@ from distutils.extension import Extension
 from Cython.Build import cythonize
 
 setup(
-    name='tinyexpr',
+    name='tinex',
     version='0.1.0',
-    ext_modules=cythonize([Extension('tinyexpr',
-                                     ['tinyexpr.pyx'],
+    ext_modules=cythonize([Extension('tinex',
+                                     ['tinex.pyx'],
                                      extra_objects=['include/tinyexpr.c']
                                      )])
 )
