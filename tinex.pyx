@@ -1,27 +1,67 @@
 #!python
 #cython: embedsignature=True
-cimport tinyexpr
+"""python wrapper for tinyexpr
+
+Todos
+-----
+* pre-compiled expressions
+* test non-dict mappings
+* test input edge-cases
+"""
+from tinyexpr cimport (te_interp, te_variable, te_expr, te_compile, te_eval,
+                       te_free)
+from libc.stdlib cimport malloc, free
 
 
-cpdef double _eval(expression: bytes) except? -9:
-    """Evaluate an escii-encoded bytestring expression"""
+cdef double _eval(bytes expression) except? -9:
+    """Evaluate an expression and check for errors"""
     cdef:
         int error
-        double result
+        double result = te_interp(expression, &error)
 
-    result = tinyexpr.te_interp(expression, &error)
     if error != 0:
         raise SyntaxError(f'unexpected character at position {error}')
     return result
 
 
-def eval(expression: str) -> float:
+
+cdef double _eval_with_vars(bytes expression, dict vardict):
+    """Evalute an expression with variables, check for errors"""
+    cdef:
+        int varcount = len(vardict)
+        te_variable *variables = <te_variable *>malloc(
+            varcount*sizeof(te_variable))
+        double *values = <double *>malloc(varcount*sizeof(double))
+        double result
+        int error
+        te_expr *expr
+
+    if not variables or not values:
+        raise MemoryError()
+
+    # convert the dict items to `te_variable`s
+    for i, (vname, val) in enumerate(vardict.items()):
+        values[i] = <double>val
+        variables[i] = te_variable(vname.encode('ascii'), &values[i], 0, NULL)
+
+    expr = te_compile(expression, variables, varcount, &error)
+    result = te_eval(expr)
+
+    te_free(expr)
+    free(values)
+    free(variables)
+    return result
+
+
+def eval(expression: str, vars: dict=None) -> float:
     """Evaluate an expression
 
     Parameters
     ----------
     expression : str
         The expression string (must be ascii-encodable).
+    vars : dict[str, float]
+        mapping of variable names and their assigned values
 
     Returns
     -------
@@ -36,7 +76,7 @@ def eval(expression: str) -> float:
     Examples
     --------
 
-    >>> import tinyexpr as te
+    >>> import tinex as te
     >>> te.eval('sqrt(3^2+4^2)')
     5.0
     >>> te.eval('cos(pi)')
@@ -45,4 +85,5 @@ def eval(expression: str) -> float:
     -inf
 
     """
-    return _eval(expression.encode('ascii'))
+    expr = expression.encode('ascii')
+    return _eval(expr) if vars is None else _eval_with_vars(expr, vars)

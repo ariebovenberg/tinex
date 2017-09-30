@@ -17,3 +17,20 @@ class TestEval:
         assert te.eval('1/0') == float('inf')
         assert math.isnan(te.eval('0/0'))
         assert math.isnan(te.eval('sqrt(-1)'))
+
+    @pytest.mark.parametrize('value, result', [
+        (0,    5),
+        (1,    7),
+        (-3.5, -2),
+    ])
+    def test_with_one_variable(self, value, result):
+        assert te.eval('(a*2)+5', dict(a=value)) == result
+
+    @pytest.mark.parametrize('a, beta, result', [
+        (0, 0, 0),
+        (2, 1, 5),
+        (-2.5, 99, 94),
+    ])
+    def test_with_two_vars(self, a, beta, result):
+        assert te.eval('(a*2)+beta', {'beta': beta,
+                                      'a': a}) == result
