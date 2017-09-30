@@ -1,6 +1,6 @@
 .PHONY: test clean docs
 
-test: clean
+test:
 	python setup.py build_ext --inplace
 	pytest
 

@@ -1,5 +1,13 @@
+import pytest
+
 import tinyexpr as te
 
 
-def test_eval():
-    assert te.eval(b'1+1') == 2
+class TestEval:
+
+    def test_simple(self):
+        assert te.eval(b'1+1') == 2
+
+    def test_parse_error(self):
+        with pytest.raises(SyntaxError, match='4'):
+            te.eval(b'(5+5')
