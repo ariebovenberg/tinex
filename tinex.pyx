@@ -25,7 +25,7 @@ cdef double _eval(bytes expression) except? -9:
 
 
 
-cdef double _eval_with_vars(bytes expression, dict vardict):
+cdef double _eval_with_vars(bytes expression, dict vardict) except? -9:
     """Evalute an expression with variables, check for errors"""
     cdef:
         int varcount = len(vardict)
@@ -36,12 +36,12 @@ cdef double _eval_with_vars(bytes expression, dict vardict):
         int error
         te_expr *expr
 
-    if not variables or not values:
+    if not variables or not values:  # pragma: no cover
         raise MemoryError()
 
     # convert the dict items to `te_variable`s
     for i, (vname, val) in enumerate(vardict.items()):
-        values[i] = <double>val
+        values[i] = val
         variables[i] = te_variable(vname.encode('ascii'), &values[i], 0, NULL)
 
     expr = te_compile(expression, variables, varcount, &error)
@@ -50,10 +50,14 @@ cdef double _eval_with_vars(bytes expression, dict vardict):
     te_free(expr)
     free(values)
     free(variables)
+
+    if error != 0:
+        raise SyntaxError(f'error at position {error}')
+
     return result
 
 
-def eval(expression: str, vars: dict=None) -> float:
+def eval(str expression, dict vars=None) -> float:
     """Evaluate an expression
 
     Parameters
