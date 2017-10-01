@@ -3,6 +3,8 @@ import math
 
 import tinex as te
 
+approx = pytest.approx
+
 
 class TestEval:
 
@@ -18,22 +20,13 @@ class TestEval:
         assert math.isnan(te.eval('0/0'))
         assert math.isnan(te.eval('sqrt(-1)'))
 
-    @pytest.mark.parametrize('value, result', [
-        (0,    5),
-        (1,    7),
-        (-3.5, -2),
+    @pytest.mark.parametrize('expr, vars, result', [
+        ('a', dict(a=4.5), 4.5),
+        ('(a+2) * beta', dict(a=1, beta=4.5), 13.5),
+        ('((t + 2) * a) / c', dict(t=1.1, a=-1, c=0.2), -15.5)
     ])
-    def test_with_one_variable(self, value, result):
-        assert te.eval('(a*2)+5', dict(a=value)) == result
-
-    @pytest.mark.parametrize('a, beta, result', [
-        (0, 0, 0),
-        (2, 1, 5),
-        (-2.5, 99, 94),
-    ])
-    def test_with_two_vars(self, a, beta, result):
-        assert te.eval('(a*2)+beta', {'beta': beta,
-                                      'a': a}) == result
+    def test_with_vars(self, expr, vars, result):
+        assert te.eval(expr, vars=vars) == approx(result)
 
     def test_with_vars_missing_var(self):
         with pytest.raises(SyntaxError, match='position 16'):
