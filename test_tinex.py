@@ -34,3 +34,7 @@ class TestEval:
     def test_with_two_vars(self, a, beta, result):
         assert te.eval('(a*2)+beta', {'beta': beta,
                                       'a': a}) == result
+
+    def test_with_vars_missing_var(self):
+        with pytest.raises(SyntaxError, match='position 16'):
+            te.eval('(5 + x1) / 3 + f', dict(x1=4))
