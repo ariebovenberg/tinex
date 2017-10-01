@@ -9,6 +9,9 @@ build:
 test: build
 	pytest
 
+coverage: build
+	pytest --cov=tinex --cov-report html --cov-report term --cov-branch
+
 clean:
 	rm -rf build
 	find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
