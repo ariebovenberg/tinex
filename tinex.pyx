@@ -1,13 +1,15 @@
 #!python
-#cython: embedsignature=True
+# cython: linetrace=True
+# distutils: define_macros=CYTHON_TRACE=1
+# cython: embedsignature=True
 """python wrapper for tinyexpr
 
 Todos
 -----
-* pre-compiled expressions
-* test non-dict mappings
-* test input edge-cases
+* compiled expressions
 """
+from numbers import Real
+from typing import Mapping
 from tinyexpr cimport (te_interp, te_variable, te_expr, te_compile, te_eval,
                        te_free)
 from libc.stdlib cimport malloc, free
@@ -20,12 +22,12 @@ cdef double _eval(bytes expression) except? -9:
         double result = te_interp(expression, &error)
 
     if error != 0:
-        raise SyntaxError(f'unexpected character at position {error}')
+        raise ValueError(f'error at position {error}')
     return result
 
 
 
-cdef double _eval_with_vars(bytes expression, dict vardict) except? -9:
+cdef double _eval_with_vars(bytes expression, object vardict) except? -9:
     """Evalute an expression with variables, check for errors"""
     cdef:
         int varcount = len(vardict)
@@ -52,19 +54,23 @@ cdef double _eval_with_vars(bytes expression, dict vardict) except? -9:
     free(variables)
 
     if error != 0:
-        raise SyntaxError(f'error at position {error}')
+        raise ValueError(f'error at position {error}')
 
     return result
 
 
-def eval(str expression, dict vars=None) -> float:
+cdef bint _isnullbyte(char s):
+    return s == '\x00'
+
+
+def eval(expression: str, vars: Mapping[str, Real]=None) -> float:
     """Evaluate an expression
 
     Parameters
     ----------
     expression : str
         The expression string (must be ascii-encodable).
-    vars : dict[str, float]
+    vars : Mapping[str, Real]
         mapping of variable names and their assigned values
 
     Returns
@@ -74,8 +80,10 @@ def eval(str expression, dict vars=None) -> float:
 
     Raises
     ------
-    SyntaxError
-        If the expression cannot be parsed
+    ValueError
+        If the expression cannot be evaluated
+    UnicodeEncodeError
+        If the expression cannot be ascii-encoded
 
     Examples
     --------
@@ -90,4 +98,6 @@ def eval(str expression, dict vars=None) -> float:
 
     """
     expr = expression.encode('ascii')
-    return _eval(expr) if vars is None else _eval_with_vars(expr, vars)
+    if any(map(_isnullbyte, expr)):
+        raise ValueError('null byte in expression')
+    return _eval_with_vars(expr, vars) if vars else _eval(expr)

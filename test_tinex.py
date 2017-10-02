@@ -1,5 +1,7 @@
-import pytest
 import math
+from collections import Counter
+
+import pytest
 
 import tinex as te
 
@@ -12,7 +14,7 @@ class TestEval:
         assert te.eval('1+1') == 2
 
     def test_parse_error(self):
-        with pytest.raises(SyntaxError, match='position 4'):
+        with pytest.raises(ValueError, match='position 4'):
             te.eval('(5+5')
 
     def test_non_numbers(self):
@@ -28,6 +30,18 @@ class TestEval:
     def test_with_vars(self, expr, vars, result):
         assert te.eval(expr, vars=vars) == approx(result)
 
+    def test_supports_any_mapping(self):
+        assert te.eval('a+3', Counter(a=-1.2)) == approx(1.8)
+
     def test_with_vars_missing_var(self):
-        with pytest.raises(SyntaxError, match='position 16'):
+        with pytest.raises(ValueError, match='position 16'):
             te.eval('(5 + x1) / 3 + f', dict(x1=4))
+
+    @pytest.mark.parametrize('expr, vars, exception', [
+        ('',         {}, ValueError),
+        ('nonåscii', {}, UnicodeEncodeError),
+        ('1\x00+1',  {}, ValueError),
+    ])
+    def test_bad_characters(self, expr, vars, exception):
+        with pytest.raises(exception):
+            te.eval(expr)
