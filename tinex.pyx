@@ -15,7 +15,7 @@ from tinyexpr cimport (te_interp, te_variable, te_expr, te_compile, te_eval,
 from libc.stdlib cimport malloc, free
 
 
-cdef double _eval(bytes expression) except? -9:
+cdef double _eval(bytes expression) except? -1.1:
     """Evaluate an expression and check for errors"""
     cdef:
         int error
@@ -27,7 +27,7 @@ cdef double _eval(bytes expression) except? -9:
 
 
 
-cdef double _eval_with_vars(bytes expression, object vardict) except? -9:
+cdef double _eval_with_vars(bytes expression, object vardict) except? -1.1:
     """Evalute an expression with variables, check for errors"""
     cdef:
         int varcount = len(vardict)
@@ -43,8 +43,13 @@ cdef double _eval_with_vars(bytes expression, object vardict) except? -9:
 
     # convert the dict items to `te_variable`s
     for i, (vname, val) in enumerate(vardict.items()):
+        varname = vname.encode('ascii')
+        if len(varname) == 0 or any(map(_isnullbyte, varname)):
+            free(values)
+            free(variables)
+            raise ValueError(f'invalid variable name: {vname}')
         values[i] = val
-        variables[i] = te_variable(vname.encode('ascii'), &values[i], 0, NULL)
+        variables[i] = te_variable(varname, &values[i], 0, NULL)
 
     expr = te_compile(expression, variables, varcount, &error)
     result = te_eval(expr)
@@ -97,7 +102,9 @@ def eval(expression: str, vars: Mapping[str, Real]=None) -> float:
     -inf
 
     """
-    expr = expression.encode('ascii')
+    cdef bytes expr = expression.encode('ascii')
+
     if any(map(_isnullbyte, expr)):
         raise ValueError('null byte in expression')
+
     return _eval_with_vars(expr, vars) if vars else _eval(expr)

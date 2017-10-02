@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import math
 from collections import Counter
 
@@ -37,11 +38,21 @@ class TestEval:
         with pytest.raises(ValueError, match='position 16'):
             te.eval('(5 + x1) / 3 + f', dict(x1=4))
 
-    @pytest.mark.parametrize('expr, vars, exception', [
-        ('',         {}, ValueError),
-        ('nonåscii', {}, UnicodeEncodeError),
-        ('1\x00+1',  {}, ValueError),
+    @pytest.mark.parametrize('expr, exception', [
+        ('',         ValueError),
+        ('nonåscii', UnicodeEncodeError),
+        ('1\x00+1',  ValueError),
     ])
-    def test_bad_characters(self, expr, vars, exception):
+    def test_bad_characters(self, expr, exception):
         with pytest.raises(exception):
             te.eval(expr)
+
+    @pytest.mark.parametrize('vname, exception', [
+        ('',          ValueError),
+        ('nonåscii',  UnicodeEncodeError),
+        ('a\x00lpha', ValueError),
+    ])
+    def test_bad_characters_in_varnames(self, vname, exception):
+        expr = '{}+4'.format(vname)
+        with pytest.raises(exception):
+            te.eval(expr, {vname: 4.5})
