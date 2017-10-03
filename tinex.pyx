@@ -8,8 +8,6 @@ Todos
 -----
 * compiled expressions
 """
-from numbers import Real
-from typing import Mapping
 from tinyexpr cimport (te_interp, te_variable, te_expr, te_compile, te_eval,
                        te_free)
 from libc.stdlib cimport malloc, free
@@ -37,6 +35,7 @@ cdef double _eval_with_vars(bytes expression, object vardict) except? -1.1:
         double result
         int error
         te_expr *expr
+        bytes varname
 
     if not variables or not values:  # pragma: no cover
         raise MemoryError()
@@ -44,8 +43,10 @@ cdef double _eval_with_vars(bytes expression, object vardict) except? -1.1:
     # convert the dict items to `te_variable`s
     try:
         for i, (vname, val) in enumerate(vardict.items()):
-            varname = vname.encode('ascii')
-            if len(varname) == 0 or any(map(_isnullbyte, varname)):
+            varname = (vname.encode('ascii') if isinstance(vname, unicode)
+                       else vname)
+            print(type(vname))
+            if len(varname) == 0 or b'\x00' in varname:
                 raise ValueError(f'invalid variable name: {vname}')
             values[i] = val
             variables[i] = te_variable(varname, &values[i], 0, NULL)
@@ -67,12 +68,7 @@ cdef double _eval_with_vars(bytes expression, object vardict) except? -1.1:
     return result
 
 
-cdef bint _isnullbyte(char s):
-    return s == '\x00'
-
-
-cpdef double eval(expression: str, object vars: Mapping[str, Real]=None) \
-    except -1.1:
+cpdef double eval(object expression, object vars=None) except -1.1:
     """Evaluate an expression
 
     Parameters
@@ -106,9 +102,11 @@ cpdef double eval(expression: str, object vars: Mapping[str, Real]=None) \
     -inf
 
     """
-    cdef bytes expr = expression.encode('ascii')
+    cdef bytes expr = (expression.encode('ascii')
+                       if isinstance(expression, unicode)
+                       else expression)
 
-    if any(map(_isnullbyte, expr)):
+    if b'\x00' in expr:
         raise ValueError('null byte in expression')
 
     return _eval_with_vars(expr, vars) if vars else _eval(expr)
