@@ -56,3 +56,7 @@ class TestEval:
         expr = '{}+4'.format(vname)
         with pytest.raises(exception):
             te.eval(expr, {vname: 4.5})
+
+    def test_non_numeric_value(self):
+        with pytest.raises(TypeError):
+            te.eval('a+5', dict(a='not a float'))
