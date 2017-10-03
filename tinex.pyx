@@ -71,7 +71,8 @@ cdef bint _isnullbyte(char s):
     return s == '\x00'
 
 
-def eval(expression: str, vars: Mapping[str, Real]=None) -> float:
+cpdef double eval(expression: str, object vars: Mapping[str, Real]=None) \
+    except -1.1:
     """Evaluate an expression
 
     Parameters
