@@ -14,6 +14,7 @@ class TestEval:
 
     def test_simple(self):
         assert te.eval('1+1') == 2
+        assert te.eval(b'1+1') == 2
 
     def test_parse_error(self):
         with pytest.raises(ValueError, match='position 4'):
@@ -26,7 +27,7 @@ class TestEval:
 
     @pytest.mark.parametrize('expr, vars, result', [
         ('a', dict(a=4.5), 4.5),
-        ('(a+2) * beta', dict(a=1, beta=4.5), 13.5),
+        ('(a+2) * beta', {b'a': 1, 'beta': 4.5}, 13.5),
         ('((t + 2) * a) / c', dict(t=1.1, a=-1, c=0.2), -15.5)
     ])
     def test_with_vars(self, expr, vars, result):
