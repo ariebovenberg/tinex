@@ -42,14 +42,17 @@ cdef double _eval_with_vars(bytes expression, object vardict) except? -1.1:
         raise MemoryError()
 
     # convert the dict items to `te_variable`s
-    for i, (vname, val) in enumerate(vardict.items()):
-        varname = vname.encode('ascii')
-        if len(varname) == 0 or any(map(_isnullbyte, varname)):
-            free(values)
-            free(variables)
-            raise ValueError(f'invalid variable name: {vname}')
-        values[i] = val
-        variables[i] = te_variable(varname, &values[i], 0, NULL)
+    try:
+        for i, (vname, val) in enumerate(vardict.items()):
+            varname = vname.encode('ascii')
+            if len(varname) == 0 or any(map(_isnullbyte, varname)):
+                raise ValueError(f'invalid variable name: {vname}')
+            values[i] = val
+            variables[i] = te_variable(varname, &values[i], 0, NULL)
+    except Exception:
+        free(values)
+        free(variables)
+        raise
 
     expr = te_compile(expression, variables, varcount, &error)
     result = te_eval(expr)
