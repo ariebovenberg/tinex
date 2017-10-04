@@ -45,7 +45,6 @@ cdef double _eval_with_vars(bytes expression, dict vardict) except? -1.1:
         for i, (vname, val) in enumerate(vardict.items()):
             varname = (vname.encode('ascii') if isinstance(vname, unicode)
                        else vname)
-            print(type(vname))
             if len(varname) == 0 or b'\x00' in varname:
                 raise ValueError(f'invalid variable name: {vname}')
             values[i] = val
