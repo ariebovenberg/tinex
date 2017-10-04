@@ -25,7 +25,7 @@ cdef double _eval(bytes expression) except? -1.1:
 
 
 
-cdef double _eval_with_vars(bytes expression, object vardict) except? -1.1:
+cdef double _eval_with_vars(bytes expression, dict vardict) except? -1.1:
     """Evalute an expression with variables, check for errors"""
     cdef:
         int varcount = len(vardict)
@@ -68,15 +68,15 @@ cdef double _eval_with_vars(bytes expression, object vardict) except? -1.1:
     return result
 
 
-cpdef double eval(object expression, object vars=None) except -1.1:
+def eval(expression, **variables) -> float:
     """Evaluate an expression
 
     Parameters
     ----------
     expression : str
-        The expression string (must be ascii-encodable).
-    vars : Mapping[str, Real]
-        mapping of variable names and their assigned values
+        The expression string. Must be ascii-encodable.
+    **variables : numbers.Real
+        values assigned to variables
 
     Returns
     -------
@@ -88,7 +88,7 @@ cpdef double eval(object expression, object vars=None) except -1.1:
     ValueError
         If the expression cannot be evaluated
     UnicodeEncodeError
-        If the expression cannot be ascii-encoded
+        If the expression or variables cannot be ascii-encoded
 
     Examples
     --------
@@ -109,4 +109,4 @@ cpdef double eval(object expression, object vars=None) except -1.1:
     if b'\x00' in expr:
         raise ValueError('null byte in expression')
 
-    return _eval_with_vars(expr, vars) if vars else _eval(expr)
+    return _eval_with_vars(expr, variables) if vars else _eval(expr)
