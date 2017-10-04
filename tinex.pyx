@@ -93,7 +93,7 @@ def eval(expression, **variables) -> float:
     --------
 
     >>> import tinex as te
-    >>> te.eval('sqrt(3^2+4^2)')
+    >>> te.eval('sqrt(a^2+b^2)', a=3, b=4)
     5.0
     >>> te.eval('cos(pi)')
     -1.0

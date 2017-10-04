@@ -11,5 +11,5 @@ Quickstart
 .. code-block:: python
 
    >>> import tinex
-   >>> tinex.eval('1+1')
-   2.0
+   >>> tinex.eval('sqrt(a^2+b^2)', a=3, b=4)
+   5.0
