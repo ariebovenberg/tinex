@@ -2,4 +2,4 @@ API documentation
 =================
 
 .. automodule:: tinex
-   :members: eval
+   :members: eval, Expression
