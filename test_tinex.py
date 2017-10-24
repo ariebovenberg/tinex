@@ -70,10 +70,10 @@ class TestExpression:
         expr = te.Expression(expression, varnames='beta a')
 
         assert isinstance(expr, te.Expression)
-        # assert expr.varnames == ('beta', 'a')
-        # assert expr.body == expr_str
-        # assert str(expr) == expr_str
-        # assert repr(expr) == '<Expression: {}>'.format(expr)
+        assert expr.varnames == ('beta', 'a')
+        assert expr.body == expression
+        assert str(expr) == expression
+        assert repr(expr) == '<Expression: {}>'.format(expr)
 
     @pytest.mark.xfail
     def test_null_byte_in_body(self):

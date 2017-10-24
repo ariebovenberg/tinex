@@ -141,6 +141,7 @@ cdef class Expression:
     cdef double* _values
     cdef int error
     cpdef readonly tuple varnames
+    cpdef readonly str body
 
     def __cinit__(self, body, varnames):
         cdef:
@@ -167,6 +168,7 @@ cdef class Expression:
             raise Exception(error)
 
         self.varnames = tuple(vnames)
+        self.body = body
 
         # self._varcount = len(varlist)
         # self._varnames = <char **>malloc(self._varcount * sizeof(char*))
@@ -189,11 +191,11 @@ cdef class Expression:
     #     """the expression body (text)"""
     #     return bytes.decode(self._body, 'ascii')
 
-    # def __str__(self):
-    #     return self.body
+    def __str__(self):
+        return self.body
 
-    # def __repr__(self):
-    #     return f'<Expression: {self.body}>'
+    def __repr__(self):
+        return f'<Expression: {self.body}>'
 
 
 cdef double _eval_expr(Expression expr, object values):
