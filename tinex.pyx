@@ -2,12 +2,7 @@
 # cython: linetrace=True
 # distutils: define_macros=CYTHON_TRACE=1
 # cython: embedsignature=True
-"""python wrapper for tinyexpr
-
-Todos
------
-* compiled expressions
-"""
+"""python wrapper for tinyexpr"""
 from tinyexpr cimport (te_interp, te_variable, te_expr, te_compile, te_eval,
                        te_free)
 from libc.stdlib cimport malloc, free
@@ -16,7 +11,7 @@ import array
 
 
 cdef double _eval_static(bytes expression) except? -1.1:
-    """Evaluate an expression and check for errors"""
+    """evalate a static expression (without variables)"""
     if b'\x00' in expression:
         raise ValueError('null byte in variable name')
     cdef:
@@ -33,8 +28,8 @@ def eval(expression, **variables) -> float:
 
     Parameters
     ----------
-    expression : str
-        The expression string. Must be ascii-encodable.
+    expression : Expression or str
+        The expression. If a string, it must be ascii-encodable.
     **variables : numbers.Real
         values assigned to variables
 
