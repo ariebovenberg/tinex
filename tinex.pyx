@@ -14,57 +14,16 @@ from libc.stdlib cimport malloc, free
 import array
 
 
-cdef double _eval(bytes expression) except? -1.1:
+cdef double _eval_static(bytes expression) except? -1.1:
     """Evaluate an expression and check for errors"""
+    if b'\x00' in expression:
+        raise ValueError('null byte in variable name')
     cdef:
         int error
         double result = te_interp(expression, &error)
 
     if error != 0:
         raise ValueError(f'error at position {error}')
-    return result
-
-
-
-cdef double _eval_with_vars(bytes expression, dict vardict) except? -1.1:
-    """Evalute an expression with variables, check for errors"""
-    cdef:
-        int varcount = len(vardict)
-        te_variable *variables = <te_variable *>malloc(
-            varcount*sizeof(te_variable))
-        double *values = <double *>malloc(varcount*sizeof(double))
-        double result
-        int error
-        te_expr *expr
-        bytes varname
-
-    if not variables or not values:  # pragma: no cover
-        raise MemoryError()
-
-    # convert the dict items to `te_variable`s
-    try:
-        for i, (vname, val) in enumerate(vardict.items()):
-            varname = (vname.encode('ascii') if isinstance(vname, unicode)
-                       else vname)
-            if len(varname) == 0 or b'\x00' in varname:
-                raise ValueError(f'invalid variable name: {vname}')
-            values[i] = val
-            variables[i] = te_variable(varname, &values[i], 0, NULL)
-    except Exception:
-        free(values)
-        free(variables)
-        raise
-
-    expr = te_compile(expression, variables, varcount, &error)
-    result = te_eval(expr)
-
-    te_free(expr)
-    free(values)
-    free(variables)
-
-    if error != 0:
-        raise ValueError(f'error at position {error}')
-
     return result
 
 
@@ -103,17 +62,18 @@ def eval(expression, **variables) -> float:
 
     """
     if isinstance(expression, Expression):
-        return _eval_expr(expression,
-                          map(variables.__getitem__, expression.varnames))
+        try:
+            vars_ = array.array('d', map(variables.__getitem__,
+                                         expression.varnames))
+        except KeyError as e:
+            raise TypeError(f'missing variable "{e.args[0]}"')
 
-    cdef bytes expr = (expression.encode('ascii')
-                       if isinstance(expression, unicode)
-                       else expression)
-
-    if b'\x00' in expr:
-        raise ValueError('null byte in expression')
-
-    return _eval_with_vars(expr, variables) if vars else _eval(expr)
+        return _eval_expr(expression, vars_)
+    elif not variables:
+        return _eval_static(expression.encode('ascii'))
+    else:
+        return eval(Expression(expression, varnames=' '.join(variables)),
+                    **variables)
 
 
 cdef class Expression:
@@ -133,18 +93,19 @@ cdef class Expression:
     ...            varnames='beta alpha')
     <Expression: (sin(42) * alpha) / (beta + 45^3)>
 
-    Todos
-    -----
+    Todo
+    ----
     * make threadsafe
+    * eval with positional args
     """
     cdef te_expr* _expression
     cdef double* _values
     cpdef readonly tuple varnames
     cpdef readonly str body
 
-    def __cinit__(self, body, varnames):
+    def __cinit__(self, body, varnames=''):
         cdef:
-            list vnames = varnames.split()
+            list vnames = varnames.encode('ascii').split()
             int vcount = len(vnames)
             bytes expr_bytes = body.encode('ascii')
             te_variable *variables = <te_variable *>malloc(
@@ -153,21 +114,23 @@ cdef class Expression:
             double result
             cdef bytes vname_bytes
 
+        if b'\x00' in expr_bytes:
+            raise ValueError('null byte in expression body')
+
         self._values = <double *>malloc(vcount*sizeof(double))
 
         for i, vname in enumerate(vnames):
-            # if len(vname) == 0 or b'\x00' in varname:
-            #     raise ValueError(f'invalid variable name: {vname}')
-            vname_bytes = vname.encode('ascii')
-            variables[i] = te_variable(vname_bytes, &self._values[i], 0, NULL)
+            if b'\x00' in vname:
+                raise ValueError('null byte in variable name')
+            variables[i] = te_variable(vname, &self._values[i], 0, NULL)
 
         self._expression = te_compile(expr_bytes, variables,
                                       vcount, &error)
 
         if error != 0:
-            raise Exception(error)
+            raise ValueError(f'error at position {error}')
 
-        self.varnames = tuple(vnames)
+        self.varnames = tuple(varnames.split())
         self.body = body
 
     def __dealloc__(self):
@@ -182,7 +145,7 @@ cdef class Expression:
         return f'<Expression: {self.body}>'
 
 
-cdef double _eval_expr(Expression expr, object values):
+cdef double _eval_expr(Expression expr, double[:] values) except? 1.1:
     for i, val in enumerate(values):
         expr._values[i] = val
     return te_eval(expr._expression)
