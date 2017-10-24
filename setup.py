@@ -11,6 +11,6 @@ setup(
     ext_modules=cythonize([
         Extension('tinex',
                   ['tinex.pyx'],
-                  extra_objects=['include/tinyexpr.c'])
+                  extra_objects=['tinyexpr/tinyexpr.c'])
         ]),
 )

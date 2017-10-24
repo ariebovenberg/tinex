@@ -1,4 +1,4 @@
-cdef extern from "include/tinyexpr.h":
+cdef extern from "tinyexpr/tinyexpr.h":
     double te_interp(const char *expression, int *error)
 
     ctypedef struct te_expr:
