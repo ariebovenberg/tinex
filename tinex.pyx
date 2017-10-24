@@ -139,7 +139,6 @@ cdef class Expression:
     """
     cdef te_expr* _expression
     cdef double* _values
-    cdef int error
     cpdef readonly tuple varnames
     cpdef readonly str body
 
@@ -152,14 +151,15 @@ cdef class Expression:
                 vcount*sizeof(te_variable))
             int error
             double result
+            cdef bytes vname_bytes
 
         self._values = <double *>malloc(vcount*sizeof(double))
 
         for i, vname in enumerate(vnames):
             # if len(vname) == 0 or b'\x00' in varname:
             #     raise ValueError(f'invalid variable name: {vname}')
-            bname = vname.encode('ascii')
-            variables[i] = te_variable(bname, &self._values[i], 0, NULL)
+            vname_bytes = vname.encode('ascii')
+            variables[i] = te_variable(vname_bytes, &self._values[i], 0, NULL)
 
         self._expression = te_compile(expr_bytes, variables,
                                       vcount, &error)
@@ -170,26 +170,10 @@ cdef class Expression:
         self.varnames = tuple(vnames)
         self.body = body
 
-        # self._varcount = len(varlist)
-        # self._varnames = <char **>malloc(self._varcount * sizeof(char*))
-        # for i, vname in enumerate(varlist):
-        #     vname += b'\x00'
-        #     self._varnames[i] = vname
-
-    # def __dealloc__(self):
-    #     if self._varnames != NULL:
-    #         free(self._varnames)
-
-    # @property
-    # def varnames(self):
-    #     """a tuple of the variable names"""
-    #     return tuple(bytes.decode(i, 'ascii')
-    #                  for i in self._varnames[:self._varcount])
-
-    # @property
-    # def body(self) -> unicode:
-    #     """the expression body (text)"""
-    #     return bytes.decode(self._body, 'ascii')
+    def __dealloc__(self):
+        te_free(self._expression)
+        if self._values != NULL:
+            free(self._values)
 
     def __str__(self):
         return self.body
@@ -201,6 +185,5 @@ cdef class Expression:
 cdef double _eval_expr(Expression expr, object values):
     for i, val in enumerate(values):
         expr._values[i] = val
-
     return te_eval(expr._expression)
 
