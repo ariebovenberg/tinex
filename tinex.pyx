@@ -11,6 +11,7 @@ Todos
 from tinyexpr cimport (te_interp, te_variable, te_expr, te_compile, te_eval,
                        te_free)
 from libc.stdlib cimport malloc, free
+cimport cpython.array
 import array
 
 
@@ -61,6 +62,7 @@ def eval(expression, **variables) -> float:
     -inf
 
     """
+    cdef double[:] vars_
     if isinstance(expression, Expression):
         try:
             vars_ = array.array('d', map(variables.__getitem__,
