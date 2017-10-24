@@ -1,2 +1,3 @@
 include *.pyx
-include include/*
+include *.pxd
+include tinyexpr/*

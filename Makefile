@@ -13,7 +13,7 @@ coverage: build
 	pytest --cov=tinex --cov-report html --cov-report term --cov-branch
 
 clean:
-	rm -rf build
+	$(RM) -r *.so *.c *.pyc __pycache__ *.egg-info build
 	find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
 	python setup.py clean --all
 
