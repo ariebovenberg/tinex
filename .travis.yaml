@@ -13,8 +13,5 @@ install:
 matrix:
     include:
         - python: 3.6
-        - python: 3.6
-          env: TOXENV=lint
-        - python: 3.6
           env: TOXENV=docs
 script: tox
