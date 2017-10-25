@@ -1,6 +1,9 @@
 Tinex
 =====
 
+.. image:: https://travis-ci.org/ariebovenberg/tinex.svg?branch=master
+    :target: https://travis-ci.org/ariebovenberg/tinex
+
 A python wrapper for tinyexpr_.
 
 .. _tinyexpr: https://codeplea.com/tinyexpr
