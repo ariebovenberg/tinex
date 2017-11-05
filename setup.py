@@ -20,6 +20,7 @@ class sdist(_sdist):
 cmdclass = {'sdist': sdist}
 
 if USE_CYTHON:
+    os.environ['CFLAGS'] = '-fPIC'
     from Cython.Build import build_ext
     extension_file = 'tinex.pyx'
     cmdclass['build_ext'] = build_ext
