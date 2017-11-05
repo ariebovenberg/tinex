@@ -92,8 +92,8 @@ cdef class Expression:
 
     Todo
     ----
-    * make threadsafe
-    * eval with positional args
+    * make evaluation threadsafe
+    * implement evaluate with positional args
     """
     cdef te_expr* _expression
     cdef double* _values
