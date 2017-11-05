@@ -30,7 +30,7 @@ else:
 
 setup(
     name='tinex',
-    version='0.3.0',
+    version='0.3.1',
     description='Python wrapper for Tinyexpr',
     author='Arie Bovenberg',
     author_email='a.c.bovenberg@gmail.com',
