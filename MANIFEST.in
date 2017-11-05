@@ -1,3 +1,4 @@
 include *.pyx
 include *.pxd
 include tinyexpr/*
+include tinex.c

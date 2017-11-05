@@ -5,10 +5,13 @@
 
 .. include:: ../README.rst
 
+.. include:: ../HISTORY.rst
+
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    api.rst
 
