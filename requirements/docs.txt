@@ -1,3 +1,2 @@
 sphinx
 guzzle_sphinx_theme
-sphinx-autodoc-typehints
