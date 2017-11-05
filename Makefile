@@ -1,7 +1,10 @@
 .PHONY: init build test clean docs
 
 init:
-	pip install -r requirements.txt
+	pip install -r requirements/dev.txt
+	python setup.py sdist
+	pip install -e .
+	make test
 
 build:
 	python setup.py build_ext --inplace
