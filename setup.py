@@ -3,7 +3,8 @@ from setuptools import setup
 from distutils.extension import Extension
 from distutils.command.sdist import sdist as _sdist
 
-USE_CYTHON = os.environ.get('TINEX_USE_CYTHON', False)
+USE_CYTHON = os.environ.get('TINEX_USE_CYTHON',
+                            os.environ.get('READTHEDOCS', False))
 
 
 class sdist(_sdist):
